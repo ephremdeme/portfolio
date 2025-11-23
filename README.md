@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Ephrem Demelash · Portfolio
 
-## Getting Started
+Next.js 16 App Router site showcasing Ephrem’s backend + Web3 experience (crypto exchanges, liquidity automation, high-performance SaaS). Built with Tailwind CSS, shadcn-inspired UI primitives, Framer Motion, a content-collections powered MDX blog, and a Resend-powered contact endpoint.
 
-First, run the development server:
+### Tech Stack
+- Next.js 16 (App Router, React 19)
+- Tailwind CSS v4 + shadcn-aligned UI primitives (`components/ui/*`)
+- Framer Motion animations + custom orbit portrait
+- content-collections MDX blog (`src/content/blog/*.mdx`)
+- Zod + Resend contact form API (`src/app/api/contact/route.ts`)
+- @vercel/analytics for usage insights
 
+### Local Development
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install     # install dependencies
+npm run dev     # starts content-collections watcher + Next dev
+```
+Visit `http://localhost:3000` to preview. Edit pages under `src/app/` and components in `src/components/`.
+
+### Production Build
+```bash
+npm run build   # content-collections build + next build
+npm start       # serve production build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Content
+- Blog posts live in `src/content/blog/*.mdx`. Frontmatter controls title, summary, tags, and publish date.
+- Structured data lives in `src/data/` (experience, projects, skills, testimonials).
+- Replace the placeholder portrait at `public/images/profile-placeholder.svg` with the final asset.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Deployment
+1. Push to GitHub (e.g., `ephremdeme/portfolio`).
+2. In Vercel, “New Project” → import repo → set env vars (`RESEND_API_KEY`, `NEXT_PUBLIC_SITE_URL`, etc.).
+3. Add custom domains `ephrem.dev` and `ephrem.dev.et` and update DNS records.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For staging environments, rely on Vercel preview deployments and review the analytics dashboard for engagement signals.
