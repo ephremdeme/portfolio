@@ -1,0 +1,26 @@
+---
+title: "Automating Uniswap V3 Liquidity with Node.js Lambda"
+summary: "Architecting a resilient rebalancer using the Uniswap V3 SDK, AWS Lambda, and CloudWatch Events."
+publishedAt: "2025-01-12"
+tags:
+  - Web3
+  - Serverless
+  - Node.js
+featured: true
+---
+
+Over the past year at BoxExchanger I have been building an automated liquidity system that keeps Uniswap V3 positions profitable without a human on-call for every price move.
+
+## Architecture
+
+- **Watcher** Lambda listens to pool swaps and triggers rebalances when volatility exceeds a configurable delta.
+- **Planner** service computes the optimal tick ranges using historic volatility bands and pool depth sensitivity.
+- **Executor** signs and submits transactions through a custodial signer, broadcasting safe fallback instructions when gas spikes.
+
+## Lessons Learned
+
+1. **Deterministic math** beats ad-hoc heuristics—encode everything as pure functions and keep floating point out of smart-contract facing code.
+2. **Telemetry-first** meant we could see ROI drifts in Grafana and course-correct before LPs felt pain.
+3. **Simulation harnesses** that replay the last 72h of swaps saved countless incidents.
+
+Next up: exposing LP performance snapshots via a lightweight GraphQL API.

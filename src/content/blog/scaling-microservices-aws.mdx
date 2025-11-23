@@ -1,0 +1,26 @@
+---
+title: "Scaling Microservices on AWS with Event-Driven Concurrency"
+summary: "Design notes from rewiring AffCollect into a message-driven mesh that processed affiliate statements 10x faster."
+publishedAt: "2024-08-03"
+tags:
+  - Microservices
+  - AWS
+  - Kafka
+featured: false
+---
+
+AffCollect ingests thousands of affiliate dashboards every hour. We shifted the pipeline from cron-based polling to an event-driven graph built on Kafka + AWS Lambda.
+
+## Ingredients
+
+- **Orchestrator** topics manage fetch → normalize → enrich jobs.
+- **Lambda shards** keep third-party API quotas respected via token buckets.
+- **DynamoDB stream** fans out incremental updates to downstream billing services.
+
+## Outcomes
+
+- 10x faster ingestion with concurrency controls.
+- 99%+ accuracy because retries are isolated per merchant stream.
+- Observability by default using OpenTelemetry into Honeycomb.
+
+This playbook now powers every data workload I touch.
