@@ -181,3 +181,64 @@ body {
     color: var(--text-white) !important;
   }
 }
+
+@layer base {
+  .prose :where(p + p),
+  .prose :where(p + ul),
+  .prose :where(p + ol),
+  .prose :where(ul + p),
+  .prose :where(ol + p) {
+    margin-top: 1.5rem;
+  }
+
+  .prose :where(li + li) {
+    margin-top: 0.75rem;
+  }
+
+  .prose :where(ul, ol) {
+    padding-left: 1.5rem;
+  }
+
+  .prose :where(h2) {
+    font-size: clamp(2rem, 3vw, 1.2rem);
+    font-weight: 750;
+    line-height: 1.15;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .prose :where(h3) {
+    font-size: clamp(1rem, 1.5vw, 1rem);
+    font-weight: 400;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@layer base {
+  [data-rehype-pretty-code-figure] {
+    position: relative;
+  }
+
+  pre[data-theme] {
+    background-color: transparent !important;
+  }
+
+  code[data-theme] {
+    color: var(--shiki-dark);
+  }
+
+  code[data-theme] span {
+    color: var(--shiki-dark);
+  }
+
+  html[data-theme="light"] code[data-theme],
+  html[data-theme="light"] code[data-theme] span {
+    color: var(--shiki-light);
+  }
+
+  code[data-theme] span[data-line] {
+    display: inline-block;
+    width: 100%;
+  }
+}
