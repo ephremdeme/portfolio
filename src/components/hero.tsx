@@ -16,8 +16,8 @@ export function Hero() {
         </p>
         <div className="flex flex-wrap gap-4">
           <Button asChild size="lg">
-            <Link href="mailto:demelashephrem@gmail.com">
-              <Phone className="h-4 w-4" /> Book a Call
+            <Link href="https://calendly.com/demelashephrem/30min" target="_blank" rel="noopener noreferrer">
+              <Phone className="h-4 w-4 mr-2" /> Book a Call
             </Link>
           </Button>
           <Button asChild variant="ghost" size="lg">

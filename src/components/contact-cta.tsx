@@ -7,9 +7,9 @@ export function ContactCta() {
       <div className="grid gap-10 rounded-3xl border border-slate-800/80 bg-slate-950/40 p-10 lg:grid-cols-2">
         <div className="space-y-5">
           <p className="text-xs uppercase tracking-[0.35em] text-emerald-300/80">Contact</p>
-          <h2 className="text-3xl font-semibold text-white">Ready to ship high-throughput crypto systems?</h2>
+          <h2 className="text-3xl font-semibold text-white">Ready to ship high-throughput systems?</h2>
           <p className="text-slate-300">
-            Drop a note about the problem you are solving—liquidity, market making, or backend modernization. I reply within 24 hours.
+            Drop a note about the problem you are solving —backend modernization, crypto apps or telegram bots. I reply within 24 hours.
           </p>
           <div className="space-y-1 text-sm text-slate-400">
             <p>Email: <Link href="mailto:demelashephrem@gmail.com" className="text-emerald-300">demelashephrem@gmail.com</Link></p>

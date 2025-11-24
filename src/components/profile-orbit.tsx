@@ -16,7 +16,7 @@ export function ProfileOrbit() {
         transition={{ duration: 8, repeat: Infinity }}
       />
       <Image
-        src="/images/profile.png"
+        src="/images/profile2.png"
         alt="Ephrem Demelash portrait"
         width={320}
         height={320}
