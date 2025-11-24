@@ -10,7 +10,7 @@ export function ProjectCard({ project }: { project: Project }) {
           <h3 className="text-2xl font-semibold text-white">{project.name}</h3>
           <p className="mt-2 text-slate-300">{project.description}</p>
         </div>
-        <span className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs uppercase tracking-widest text-emerald-200">
+        <span className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs uppercase text-emerald-200">
           Case Study
         </span>
       </header>
@@ -37,9 +37,6 @@ export function ProjectCard({ project }: { project: Project }) {
             {link.label}
           </Link>
         ))}
-      </div>
-      <div className="mt-6 rounded-2xl border border-dashed border-slate-700/80 bg-slate-900/50 p-6 text-center text-xs text-slate-500">
-        Screenshot placeholder – replace with actual product shot.
       </div>
     </article>
   );
