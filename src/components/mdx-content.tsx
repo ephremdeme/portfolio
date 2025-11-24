@@ -11,7 +11,7 @@ const components = {
     <pre
       {...props}
       className={cn(
-        "mt-8 overflow-x-auto rounded-2xl border border-slate-800/70 bg-slate-950/70 px-5 py-4 text-sm leading-relaxed text-slate-100 shadow-[0_20px_45px_rgba(2,6,23,0.65)]",
+        "mt-8 overflow-x-auto rounded-2xl border border-slate-800/60 bg-slate-950/60 px-5 py-4 my-2 text-sm leading-relaxed text-slate-100 shadow-[0_12px_32px_rgba(2,6,23,0.35)] ring-1 ring-white/5",
         "before:hidden after:hidden",
         props.className
       )}

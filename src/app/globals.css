@@ -201,15 +201,15 @@ body {
 
   .prose :where(h2) {
     font-size: clamp(2rem, 3vw, 1.2rem);
-    font-weight: 750;
+    font-weight: 550;
     line-height: 1.15;
     margin-top: 1rem;
     margin-bottom: 1rem;
   }
 
   .prose :where(h3) {
-    font-size: clamp(1rem, 1.5vw, 1rem);
-    font-weight: 400;
+    font-size: clamp(1.2rem, 1.5vw, 1rem);
+    font-weight: 300;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
   }
@@ -240,5 +240,14 @@ body {
   code[data-theme] span[data-line] {
     display: inline-block;
     width: 100%;
+  }
+}
+
+@layer base {
+  html[data-theme="light"] .prose pre {
+    background-color: var(--bg-slate-900-30) !important;
+    border-color: var(--border-slate-700-60) !important;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12) !important;
+    outline: 1px solid color-mix(in srgb, var(--bg-slate-700) 55%, white) !important;
   }
 }
