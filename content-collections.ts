@@ -1,6 +1,17 @@
 import { defineCollection, defineConfig } from "@content-collections/core";
 import { compileMDX } from "@content-collections/mdx";
+import rehypePrettyCode from "rehype-pretty-code";
+import remarkGfm from "remark-gfm";
 import { z } from "zod";
+
+const prettyCodeOptions = {
+  keepBackground: false,
+  defaultLang: "ts",
+  theme: {
+    dark: "github-dark-default",
+    light: "github-light-default",
+  },
+};
 
 const blog = defineCollection({
   name: "blog",
@@ -16,8 +27,8 @@ const blog = defineCollection({
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
-      remarkPlugins: [],
-      rehypePlugins: [],
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
     });
     const words = document.content.split(/\s+/).length;
     const readingTime = `${Math.max(1, Math.round(words / 200))} min read`;
