@@ -1,0 +1,156 @@
+---
+title: "Mastering Concurrent Scraping: Orchestrating BullMQ, Puppeteer, and Redis for High-Accuracy Data Aggregation"
+summary: "Discover how we scaled affiliate commission scraping to handle hundreds of merchants with 99% accuracy and 10x faster aggregation, using a robust concurrency setup that turned chaotic dashboards into reliable insights."
+publishedAt: "2023-09-18"
+tags:
+  - BullMQ
+  - Puppeteer
+  - Redis
+  - Web Scraping
+  - Concurrency
+  - Automation
+featured: true
+---
+
+Imagine this: It's Monday morning, and the finance team is scrambling.  
+Manually rebuilding scrapers for each merchant? That'd eat up days we didn't have. 
+Instead, we built a concurrency powerhouse with BullMQ, Puppeteer, and Redis that not only solved the crisis but delivered data with 99% accuracy—far outpacing competitors. 
+
+In this post, I'll walk you through our journey: the problem we faced, the architecture we designed, key implementation details, and the game-changing results. 
+
+
+## The Challenge: Taming Fragmented Affiliate Data
+
+Affiliate networks are a wild west. Some offer clean APIs, but most bury commissions in clunky dashboards riddled with rate limits, 2FA prompts, and ever-changing UIs. 
+At AffCollect, our web app aggregated financial data for marketers, but manual scraping was a bottleneck:
+
+- **Scale Issues**: Over 300 merchants, each with unique login flows and export formats.
+- **Reliability Gaps**: Weekend data delays meant finance couldn't sync payouts promptly, risking errors in downstream systems.
+- **Maintenance Hell**: UI changes or captchas could break scrapers overnight, requiring constant babysitting.
+
+We needed a system that was fast, fault-tolerant, and easy to extend—without reinventing the wheel for every merchant. 
+
+## Our Solution: A Symphony of Tools
+
+We orchestrated a distributed scraping pipeline using BullMQ for job queuing, Puppeteer for browser automation, and Redis as the backbone for state and locking. This setup allowed parallel processing while maintaining control, much like managing liquidity pools in a crypto exchange (a nod to my current Web3 work).
+
+Here's the high-level architecture:
+
+- **BullMQ as the Conductor**: Handles job queuing with priorities, retries, and dependencies.
+- **Puppeteer Workers**: Headless browsers that execute scraping scripts in parallel.
+- **Redis for Harmony**: Stores configs, locks, and metrics to prevent conflicts and monitor health.
+
+This combo scaled effortlessly, turning a sequential nightmare into a parallel powerhouse.
+
+## Deep Dive: Implementation Breakdown
+
+Let's break it down step by step, with code snippets to make it actionable. (All examples are in TypeScript/Node.js, as used in our microservices setup.)
+
+### 1. Setting Up BullMQ Jobs
+
+Each merchant became a configurable job in BullMQ. We stored merchant-specific details (e.g., login selectors, captcha handlers) in Redis for easy updates.
+
+```typescript
+import { Queue } from "bullmq";
+import { createClient } from "redis";
+
+const redisClient = createClient({ url: "redis://localhost:6379" });
+const queue = new Queue("scrapingQueue", { connection: redisClient });
+
+async function addMerchantJob(merchantId: string) {
+  await queue.add(
+    "scrapeMerchant",
+    {
+      merchantId,
+      config: {
+        /* login steps, rate limits, etc. */
+      },
+    },
+    {
+      priority: 1, // Higher for urgent merchants
+      attempts: 3, // Scoped retries
+      backoff: { type: "exponential", delay: 5000 },
+    }
+  );
+}
+```
+
+This job graph let us pause, prioritize, or debug individual merchants without halting the system.
+
+### 2. Puppeteer in Action
+
+Workers pulled jobs and spun up headless Chrome instances. We kept the fleet small (4-8 workers) to avoid detection, using Puppeteer's stealth plugins for captcha evasion.
+
+```typescript
+import puppeteer from "puppeteer";
+import { Worker } from "bullmq";
+
+const worker = new Worker(
+  "scrapingQueue",
+  async (job) => {
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+
+    // Login and navigate based on job.data.config
+    await page.goto(job.data.config.url);
+    await page.type("#username", job.data.config.credentials.user);
+    // ... handle 2FA, captchas ...
+
+    // Extract data
+    const csvData = await page.evaluate(
+      () => document.querySelector("#export").innerText
+    );
+    const normalized = parseAndNormalize(csvData); // Custom parser
+
+    await browser.close();
+    return normalized;
+  },
+  { connection: redisClient }
+);
+```
+
+Pro Tip: For production, integrate Puppeteer Cluster for pooling browsers and reducing overhead.
+
+### 3. Redis for Locks and Monitoring
+
+To prevent race conditions, we used Redis locks. Lua scripts tracked metrics like scrape times and errors.
+
+```typescript
+import { createClient } from "redis";
+const client = createClient();
+
+async function acquireLock(merchantId: string) {
+  const lockKey = `lock:${merchantId}`;
+  return await client.set(lockKey, "locked", { NX: true, EX: 300 }); // 5-min TTL
+}
+
+// In worker: Check lock before scraping, release after.
+```
+
+We also pushed pulse stats to a Redis stream for real-time dashboards: `client.xAdd('scrapeMetrics', '*', { merchantId, status: 'success', time: Date.now() });`.
+
+## Results: Speed, Accuracy, and Autonomy
+
+The payoff was massive:
+
+- **10x Aggregation Speed**: Concurrency and message queues (MQ via BullMQ) slashed processing from hours to minutes, even for 300+ merchants.
+- **99% Accuracy**: Diff-driven validation flagged anomalies, beating competitors who struggled with 80-90% reliability.
+- **Under 20-Minute Runs**: Parallel jobs kept nightly fetches snappy, giving finance near-real-time insights.
+- **Zero Babysitting**: Scoped retries and monitoring meant the system self-healed, freeing devs for higher-impact work.
+
+This directly contributed to AffCollect's $10M valuation, showcasing scalable backend engineering that recruiters love.
+
+## Lessons Learned: Tips for Your Next Automation Project
+
+- **Config Over Code**: Merchant configs in Redis made onboarding new partners a breeze—no redeploys needed.
+- **Monitor Everything**: Redis metrics turned debugging from guesswork to precision.
+- **Edge Cases Matter**: Test for UI changes; we used snapshot testing on Puppeteer pages.
+- **Scale Smart**: Start small, then add workers as needed. For Web3 pivots, adapt this for blockchain data scraping (e.g., on-chain events).
+
+If you're building similar systems, this stack is resilient and extensible—perfect for backend roles in fintech or crypto.
+
+## Wrapping Up
+
+From a frantic Monday fix to a self-sustaining scraper farm, BullMQ, Puppeteer, and Redis proved unbeatable for concurrent web scraping. It's not just about the tools; it's about orchestrating them for real business impact. If you're job hunting as a backend dev, weave stories like this into your portfolio—they demonstrate problem-solving that lands interviews.
+
+Got questions or your own scraping war stories? Drop a comment below or connect on [LinkedIn](https://www.linkedin.com/in/ephrem-demelash/). Let's chat about scaling your next project!
