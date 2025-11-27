@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { allBlogs } from "content-collections";
 import { format } from "date-fns";
+import { HeadingObserver } from "@/components/heading-observer";
 import { MdxContent } from "@/components/mdx-content";
 
 interface BlogPostPageProps {
@@ -29,6 +30,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <div className="bg-slate-950 text-slate-100">
+      <HeadingObserver />
       <article className="mx-auto max-w-3xl px-4 py-20">
         <p className="text-sm uppercase tracking-[0.35em] text-emerald-300/80">
           {format(new Date(post.publishedAt), "MMM dd, yyyy")} · {post.readingTime}
