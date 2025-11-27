@@ -1,0 +1,260 @@
+---
+title: "Getting Started with Cloudflare Workers and h3"
+summary: "Spin up a typed API on Cloudflare Workers using the h3 framework, Wrangler, and a few minutes of setup."
+publishedAt: "2025-11-27"
+tags:
+  - Cloudflare
+  - h3
+  - TypeScript
+  - Serverless
+  - Tutorial
+featured: false
+---
+
+Cloudflare Workers make it absurdly easy to ship globally distributed APIs without touching servers. Pair that edge runtime with [h3](https://github.com/unjs/h3) (the tiny HTTP framework that powers Nuxt/Nitro) and you get routing, middleware, and typed handlers all in one lightweight bundle.
+
+This post walks through the essentials:
+
+- How to scaffold a TypeScript worker with Wrangler.
+- A short tutorial that builds a lightweight posts + comments API with KV and D1.
+- Tips for bindings (KV, R2, D1, Queues) so you can build production-ready automation.
+
+## Quick Nav
+
+- [Prerequisites](#prerequisites)
+- [Step-by-step setup](#step-by-step-setup)
+- [Short tutorial: posts + comments](#short-tutorial-posts-comments)
+- [Production pointers](#production-pointers)
+- [Deploy to Cloudflare](#deploy-to-cloudflare)
+- [Wrapping up](#wrapping-up)
+
+
+## Prerequisites
+
+- Node.js 18+ (Workers run on modern runtimes, so stick with LTS or newer).
+- A Cloudflare account with Workers enabled.
+- Wrangler CLI  (`npm install -g wrangler`)
+
+## Step-by-step setup
+
+### 1. Scaffold the worker
+
+```bash
+npx wrangler init cf-h3-api --type=javascript
+cd cf-h3-api
+npm install --save-dev typescript
+```
+
+Wrangler gives you a `src/index.ts` entry, `wrangler.toml`, and a local dev script.
+
+### 2. Install h3 + utility types
+
+```bash
+npm install h3 unenv
+```
+
+`unenv` lets h3 reuse familiar globals (like `createError`) inside the Workers runtime.
+
+### 3. Create the h3 app
+
+Replace `src/index.ts` with the following TypeScript:
+
+```ts
+import { createApp, eventHandler, toWebRequestHandler, readBody } from "h3";
+
+interface Env {
+  FEEDBACK_KV: KVNamespace;
+}
+
+const app = createApp();
+
+app.use(
+  "/health",
+  eventHandler(() => ({ ok: true, runtime: "cloudflare-workers" }))
+);
+
+app.use(
+  "/feedback",
+  eventHandler(async (event) => {
+    const body = await readBody<{ projectId: string; message: string; userId?: string }>(event);
+
+    if (!body?.projectId || !body?.message) {
+      return { ok: false, error: "projectId and message are required" };
+    }
+
+    const { projectId, message, userId } = body;
+    const { FEEDBACK_KV } = event.context.cloudflare.env as Env;
+    const key = `project:${projectId}:` + crypto.randomUUID();
+
+    await FEEDBACK_KV.put(
+      key,
+      JSON.stringify({ message, userId: userId ?? "guest", createdAt: Date.now() })
+    );
+
+    return { ok: true, storedAt: key };
+  })
+);
+
+export default {
+  fetch: toWebRequestHandler(app),
+};
+```
+
+**Highlights**:
+
+- `createApp` gives us a lightweight router.
+- Each handler receives the `CloudflareContext`, so we can access bindings (like `FEEDBACK_KV`).
+- `toWebRequestHandler` converts the h3 app into the Worker `fetch` contract.
+
+### 4. Configure bindings
+
+Add the KV namespace to `wrangler.toml`:
+
+```toml
+name = "cf-h3-api"
+main = "src/index.ts"
+compatibility_date = "2023-11-27"
+
+[[kv_namespaces]]
+binding = "FEEDBACK_KV"
+id = "YOUR_NAMESPACE_ID"
+```
+
+You can also declare additional bindings like `[[r2_buckets]]`, `[[d1_databases]]`, `[[queues]]`, or `[[vars]]` in the same `wrangler.toml`; h3 just reads them from `event.context.cloudflare.env`.
+
+### 5. Develop and deploy
+
+```bash
+npm run dev # or npx wrangler dev
+npm run deploy # wraps wrangler deploy
+```
+
+Wrangler will hot reload your worker locally and expose it at [http://127.0.0.1:8787](http://127.0.0.1:8787).
+
+## Short tutorial: posts + comments
+
+Need something more tangible than `/health` but lighter than a whole admin suite? Here's a mini posts + comments API that shows how h3 can juggle KV and D1 bindings without tons of boilerplate.
+
+### Create a post (KV)
+
+Store each post as JSON in KV. Workers love KV for quick fan-out reads at the edge.
+
+```ts
+interface PostInput {
+  title: string;
+  body: string;
+}
+
+app.use(
+  "/posts",
+  eventHandler(async (event) => {
+    const payload = await readBody<PostInput>(event);
+    if (!payload?.title || !payload?.body) {
+      return { ok: false, error: "title and body are required" };
+    }
+
+    const { POSTS_KV } = event.context.cloudflare.env;
+    const postId = crypto.randomUUID();
+    await POSTS_KV.put(postId, JSON.stringify({ ...payload, createdAt: Date.now() }));
+
+    return { ok: true, postId };
+  })
+);
+```
+
+### Add a comment (D1)
+
+Use D1 for relational bits. We'll index comments by post ID and keep the table extremely small for the tutorial.
+
+```ts
+app.use(
+  "/posts/:id/comments",
+  eventHandler(async (event) => {
+    const postId = event.context.params!.id;
+    const { comment, author } = await readBody<{ comment: string; author?: string }>(event);
+
+    const { COMMENTS_D1 } = event.context.cloudflare.env;
+    await COMMENTS_D1.prepare(
+      "INSERT INTO comments (post_id, author, body) VALUES (?1, ?2, ?3)"
+    )
+      .bind(postId, author ?? "guest", comment)
+      .run();
+
+    return { ok: true };
+  })
+);
+```
+
+### Fetch a post with recent comments
+
+Join the bindings manually—pull the post from KV, then grab the last N comments from D1. No need for an ORM.
+
+```ts
+app.use(
+  "/posts/:id",
+  eventHandler(async (event) => {
+    const postId = event.context.params!.id;
+    const { POSTS_KV, COMMENTS_D1 } = event.context.cloudflare.env;
+
+    const postJson = await POSTS_KV.get(postId);
+    if (!postJson) return { ok: false, error: "Post not found" };
+
+    const { results } = await COMMENTS_D1.prepare(
+      "SELECT author, body, created_at FROM comments WHERE post_id = ?1 ORDER BY created_at DESC LIMIT 5"
+    )
+      .bind(postId)
+      .all();
+
+    return {
+      ok: true,
+      post: JSON.parse(postJson),
+      comments: results,
+    };
+  })
+);
+```
+
+## Production pointers
+
+- Use **Durable Objects** or **Queues** when you need total ordering (e.g., OTP validation or long-running PDF generation).
+- Add an `onError` hook with h3 to normalize error responses and log to Cloudflare Logs or Logpush.
+- Ship environment-specific routes by reading `env.ENVIRONMENT` and toggling features (beta vs production forms).
+- Bundle with `npm run deploy` (Wrangler 3) to get per-commit publishing plus tail logs.
+
+## Deploy to Cloudflare
+
+Deployments are a single command, but a couple of flags go a long way:
+
+1. **Preview build**
+
+  ```bash
+  npm run deploy -- --env=staging
+  ```
+
+  Use staged bindings (KV, R2, D1 IDs) so you can test without touching production data.
+
+2. **Promote to production**
+
+  ```bash
+  npm run deploy -- --env=production --minify
+  ```
+
+  Add `--commit-dirty=true` if you are experimenting locally, or wire a GitHub Action to run `wrangler deploy --env=production` on tagged releases.
+
+3. **Watch logs**
+
+  ```bash
+  npx wrangler tail cf-h3-api --env=production
+  ```
+
+  This streams console output and h3 errors, which is handy while new bindings (Queues, KV) are settling in.
+
+## Wrapping up
+
+Cloudflare Workers + h3 gives you:
+
+- Deployments that finish in seconds.
+- Type-safe routing without Express overhead.
+- Easy access to KV, R2, D1, and Queues for stateful workflows.
+
+Clone the snippets above, point the bindings at your preferred storage, and you have a globally distributed posts + comments API ready for your next idea. Happy shipping!
