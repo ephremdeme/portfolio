@@ -14,7 +14,7 @@ export const skills: SkillCategory[] = [
   },
   {
     title: "DevOps",
-    items: ["Git", "Docker", "AWS", "GitLab CI/CD", "NGINX", "LocalStack", "AWS SAM"],
+    items: ["Git", "Docker", "AWS", "Cloudflare Workers", "GitLab CI/CD", "NGINX", "LocalStack", "AWS SAM"],
   },
   {
     title: "Soft & Extras",

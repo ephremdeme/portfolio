@@ -58,7 +58,7 @@ export function SiteFooter() {
 
         <div className="mt-10 flex flex-col gap-4 border-t border-slate-800/60 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} Ephrem Demelash. Crafted with Next.js 16, Tailwind, and a love for resilient systems.</p>
-          <p className="font-mono text-[0.75rem] text-emerald-200/80">Always shipping / Addis ↔ Remote</p>
+          <p className="font-mono text-[0.75rem] text-emerald-300/80">Always shipping / Addis ↔ Remote</p>
         </div>
       </div>
     </footer>
