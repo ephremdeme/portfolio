@@ -44,6 +44,29 @@ export const projects: Project[] = [
     featured: true,
   },
   {
+    slug: "cloudflare-workers-suite",
+    name: "Cloudflare Workers Automation Suite",
+    description:
+      "Distributed auth, notifications, and dynamic forms platform built on Cloudflare Workers, Wrangler, and the h3 framework with TypeScript.",
+    impact: [
+      "End-to-end auth flow with queue-based producer/consumer for email OTP and session cleanup",
+      "Project creation pipeline with KV-backed metadata plus R2 file uploads",
+      "Self-serve form builder for guests and members with per-project reporting over D1",
+    ],
+    tech: [
+      "Cloudflare Workers",
+      "Wrangler",
+      "TypeScript",
+      "h3",
+      "KV",
+      "R2",
+      "D1",
+      "Queues",
+    ],
+    links: [{ label: "Case Study", href: "#contact" }],
+    featured: true,
+  },
+  {
     slug: "yegnahome",
     name: "YegnaHome Rentals",
     description:
