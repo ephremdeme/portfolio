@@ -205,6 +205,7 @@ body {
     line-height: 1.15;
     margin-top: 1rem;
     margin-bottom: 1rem;
+    scroll-margin-top: 5rem;
   }
 
   .prose :where(h3) {
@@ -212,12 +213,51 @@ body {
     font-weight: 300;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
+    scroll-margin-top: 6.5rem;
   }
-}
 
-@layer base {
-  [data-rehype-pretty-code-figure] {
-    position: relative;
+  .prose :where(h2 > a.heading-link, h3 > a.heading-link) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-decoration: none;
+  }
+
+  .prose :where(h2 > a.heading-link)::after,
+  .prose :where(h3 > a.heading-link)::after {
+    content: "#";
+    font-size: 0.85em;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  .prose :where(h2:hover > a.heading-link)::after,
+  .prose :where(h2:focus-within > a.heading-link)::after,
+  .prose :where(h3:hover > a.heading-link)::after,
+  .prose :where(h3:focus-within > a.heading-link)::after {
+    opacity: 1;
+  }
+
+  /* Fix for inline code breaking lines within list items in the prose container */
+  .prose li code {
+        /* Use !important only if absolutely necessary, but try this first: */
+        display: inline-block; 
+        vertical-align: baseline; 
+        white-space: pre-wrap; /* Allows the code text to wrap if the line is long */
+    }
+
+  .prose :where(code):not(:where(pre code)) {
+    display: inline-flex;
+    align-items: baseline;
+    padding: 0.15rem 0.35rem;
+    border-radius: 0.4rem;
+    font-size: 0.95em;
+    font-family: var(--font-geist-mono, "SFMono-Regular", Menlo, monospace);
+    background-color: var(--bg-slate-900-40);
+    color: rgba(94, 234, 212, 0.9) !important;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   pre[data-theme] {
@@ -237,7 +277,7 @@ body {
     color: var(--shiki-light);
   }
 
-  code[data-theme] span[data-line] {
+  pre code[data-theme] span[data-line] {
     display: inline-block;
     width: 100%;
   }
