@@ -33,7 +33,7 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-3">
           <Link
-            href="mailto:demelashephrem@gmail.com"
+            href="mailto:contact@ephrem.dev"
             className="hidden rounded-full border border-emerald-500/80 px-4 py-2 text-xs font-medium uppercase tracking-widest text-emerald-300 transition hover:bg-emerald-500/10 lg:inline"
           >
             Hire Me
@@ -64,7 +64,7 @@ export function SiteHeader() {
               </Link>
             ))}
             <Link
-              href="mailto:demelashephrem@gmail.com"
+              href="mailto:contact@ephrem.dev"
               className="rounded-lg border border-emerald-500/60 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-emerald-300 transition hover:bg-emerald-500/10"
               onClick={handleCloseMenu}
             >

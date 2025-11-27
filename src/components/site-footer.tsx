@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const socials = [
-  { href: "mailto:demelashephrem@gmail.com", label: "Email" },
+  { href: "mailto:contact@ephrem.dev", label: "Email" },
   { href: "https://github.com/ephremdeme", label: "GitHub" },
   { href: "https://www.linkedin.com/in/ephrem-demelash", label: "LinkedIn" },
   { href: "tel:+251912317701", label: "+251-912-317701" },

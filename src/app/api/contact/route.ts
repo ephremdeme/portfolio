@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   try {
     await resend.emails.send({
       from: "Ephrem Portfolio <contact@ephrem.dev>",
-      to: "demelashephrem@gmail.com",
+      to: "contact@ephrem.dev",
       subject: `Portfolio inquiry from ${parsed.data.name}`,
       replyTo: parsed.data.email,
       text: `Company: ${parsed.data.company ?? "N/A"}\nBudget: ${parsed.data.budget ?? "N/A"}\nProject: ${parsed.data.project}\n\n${parsed.data.message}`,

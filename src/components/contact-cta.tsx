@@ -12,7 +12,7 @@ export function ContactCta() {
             Drop a note about the problem you are solving —backend modernization, crypto apps or telegram bots. I reply within 24 hours.
           </p>
           <div className="space-y-1 text-sm text-slate-400">
-            <p>Email: <Link href="mailto:demelashephrem@gmail.com" className="text-emerald-300">demelashephrem@gmail.com</Link></p>
+            <p>Email: <Link href="mailto:contact@ephrem.dev" className="text-emerald-300">contact@ephrem.dev</Link></p>
             <p>Phone: <Link href="tel:+251912317701" className="text-emerald-300">+251-912-317701</Link></p>
             <p>GitHub: <Link href="https://github.com/ephremdeme" className="text-emerald-300">github.com/ephremdeme</Link></p>
           </div>
