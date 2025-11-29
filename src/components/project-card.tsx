@@ -5,15 +5,15 @@ import type { Project } from "@/data/projects";
 export function ProjectCard({ project }: { project: Project }) {
   return (
     <article className="group rounded-3xl border border-slate-800/80 bg-slate-900/30 p-6 shadow-lg shadow-emerald-600/5 transition hover:-translate-y-1 hover:border-emerald-500/60">
-      <header className="flex items-start justify-between gap-4">
-        <div>
+      <div className="md:grid md:grid-cols-[1fr_auto] md:gap-x-4">
+        <header className="flex items-start justify-between gap-4 md:col-span-2">
           <h3 className="text-2xl font-semibold text-white">{project.name}</h3>
-          <p className="mt-2 text-slate-300">{project.description}</p>
-        </div>
-        <span className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs uppercase text-emerald-200">
-          Case Study
-        </span>
-      </header>
+          <span className="inline-flex items-center justify-center whitespace-nowrap flex-shrink-0 min-w-[5.5rem] rounded-full border border-emerald-500/40 px-3 py-1 text-xs uppercase text-emerald-200 md:self-start">
+            Case Study
+          </span>
+        </header>
+        <p className="mt-3 text-slate-300 md:col-start-1 md:mr-4 lg:mr-13">{project.description}</p>
+      </div>
       <ul className="mt-4 space-y-2 text-sm text-emerald-200">
         {project.impact.map((item) => (
           <li key={item}>• {item}</li>
