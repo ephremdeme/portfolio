@@ -1,66 +1,70 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Fira_Code } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Analytics } from "@vercel/analytics/react";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const firaCode = Fira_Code({
+  variable: "--font-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ephrem.dev"),
   title: {
-    default: "Ephrem Demelash | Backend & Web3 Engineer",
+    default: "Ephrem Demelash | Backend Engineer",
     template: "%s | Ephrem Demelash",
   },
   description:
-    "Full Stack developer pivoting to Web3—Node.js, TypeScript, microservices, liquidity automation, and DeFi infrastructure.",
+    "Backend engineer building distributed systems, APIs, and Web3 infrastructure. 6+ years with Node.js, Go, and Rust.",
   openGraph: {
     title: "Ephrem Demelash",
-    description: "Backend/Full-Stack Dev pivoting to Web3 | 6+ Yrs building scalable systems.",
+    description: "Backend engineer | Distributed systems, APIs, Web3",
     url: "https://ephrem.dev",
-    siteName: "Ephrem Demelash Portfolio",
+    siteName: "Ephrem Demelash",
     images: [
       {
         url: "/og-cover.svg",
         width: 1200,
         height: 630,
-        alt: "Ephrem Demelash",
+        alt: "Ephrem Demelash - Backend Engineer",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Ephrem Demelash",
-    description: "Backend/Full-Stack Dev pivoting to Web3",
+    description: "Backend engineer | Distributed systems, APIs, Web3",
     creator: "@ephremdeme",
   },
   keywords: [
     "Ephrem Demelash",
-    "Web3 engineer",
+    "Backend engineer",
     "Node.js",
-    "Uniswap automation",
-    "Full stack developer",
+    "Go",
+    "Rust",
+    "Distributed systems",
+    "Web3",
+    "API development",
   ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning data-theme="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} bg-slate-950 text-slate-100 antialiased transition-colors`}>
+      <body className={`${inter.variable} ${firaCode.variable} antialiased`}>
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
-          <div className="min-h-screen bg-slate-950 transition-colors">
+          <div className="min-h-screen flex flex-col">
             <SiteHeader />
-            <main>{children}</main>
+            <main className="flex-1">{children}</main>
             <SiteFooter />
           </div>
         </ThemeProvider>
