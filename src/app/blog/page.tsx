@@ -1,45 +1,60 @@
+"use client";
+
 import Link from "next/link";
 import { allBlogs } from "content-collections";
 import { format } from "date-fns";
-import { SectionHeading } from "@/components/section-heading";
 
 export default function BlogPage() {
   const posts = allBlogs.sort((a, b) => (a.publishedAt > b.publishedAt ? -1 : 1));
+  
   return (
-    <div className="bg-slate-950 text-slate-100">
-      <section className="mx-auto max-w-4xl px-4 py-20">
-        <SectionHeading
-          eyebrow="Blog"
-          title="Build logs + playbooks"
-          description="Web3 automation, serverless microservices, and backend performance notes."
-        />
-        <div className="mt-10 space-y-6">
-          {posts.map((post) => (
-            <Link
-              key={post.slug}
-              href={`/blog/${post.slug}`}
-              className="block rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6 transition hover:border-emerald-400/60"
-            >
-              <div className="flex items-center gap-4 text-sm text-slate-400">
-                <span>{format(new Date(post.publishedAt), "MMM dd, yyyy")}</span>
-                <span>·</span>
-                <span>{post.readingTime}</span>
+    <div className="mx-auto max-w-4xl px-6 py-16">
+      {/* Header */}
+      <h1 className="font-mono text-2xl font-medium text-[var(--text-primary)]">
+        <span className="text-[var(--accent)]">#</span> blog
+      </h1>
+      <p className="mt-2 text-sm text-[var(--text-secondary)]">
+        Notes on distributed systems, Web3 automation, and backend engineering.
+      </p>
+
+      {/* Posts List */}
+      <div className="mt-10 space-y-4">
+        {posts.map((post) => (
+          <Link
+            key={post.slug}
+            href={`/blog/${post.slug}`}
+            className="block rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] p-4 transition-colors hover:border-[var(--border-hover)]"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <h2 className="font-mono text-sm font-medium text-[var(--text-primary)]">
+                {post.title}
+              </h2>
+              <time className="shrink-0 font-mono text-xs text-[var(--text-muted)]">
+                {format(new Date(post.publishedAt), "MMM yyyy")}
+              </time>
+            </div>
+            
+            {post.summary && (
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                {post.summary}
+              </p>
+            )}
+
+            {post.tags && post.tags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded bg-[var(--accent-muted)] px-1.5 py-0.5 font-mono text-xs text-[var(--accent)]"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
-              <h3 className="mt-3 text-2xl font-semibold text-white">{post.title}</h3>
-              <p className="mt-2 text-slate-300">{post.summary}</p>
-              {post.tags && (
-                <div className="mt-4 flex flex-wrap gap-2 text-xs text-emerald-200">
-                  {post.tags.map((tag) => (
-                    <span key={tag} className="rounded-full border border-emerald-500/40 px-3 py-1">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </Link>
-          ))}
-        </div>
-      </section>
+            )}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

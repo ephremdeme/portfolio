@@ -28,8 +28,8 @@ export function CodeCopyButton({ value, className }: CodeCopyButtonProps) {
       type="button"
       onClick={handleCopy}
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-950/80 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-100 transition",
-        "hover:border-emerald-400/70 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400",
+        "inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg-secondary)] px-2 py-1 font-mono text-xs font-medium text-[var(--text-secondary)] transition-colors",
+        "hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
         className
       )}
       aria-label={copied ? "Code copied" : "Copy code"}

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { allBlogs } from "content-collections";
 import { format } from "date-fns";
-import { HeadingObserver } from "@/components/heading-observer";
 import { MdxContent } from "@/components/mdx-content";
 
 interface BlogPostPageProps {
@@ -29,18 +28,62 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (!post) notFound();
 
   return (
-    <div className="bg-slate-950 text-slate-100">
-      <HeadingObserver />
-      <article className="mx-auto max-w-3xl px-4 py-20">
-        <p className="text-sm uppercase tracking-[0.35em] text-emerald-300/80">
-          {format(new Date(post.publishedAt), "MMM dd, yyyy")} · {post.readingTime}
+    <article className="mx-auto max-w-3xl px-6 py-16">
+      {/* Meta */}
+      <div className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+        <span style={{ color: 'var(--accent)' }}>$</span> cat blog/{post.slug}.md
+      </div>
+      
+      {/* Title */}
+      <h1 
+        className="mt-6 font-mono text-2xl font-medium leading-tight"
+        style={{ color: 'var(--text-primary)' }}
+      >
+        {post.title}
+      </h1>
+      
+      {/* Date & Reading Time */}
+      <div className="mt-2 font-mono text-sm" style={{ color: 'var(--text-muted)' }}>
+        {format(new Date(post.publishedAt), "MMMM dd, yyyy")} · {post.readingTime}
+      </div>
+
+      {/* Summary */}
+      {post.summary && (
+        <p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+          {post.summary}
         </p>
-        <h1 className="mt-4 text-4xl font-semibold text-white">{post.title}</h1>
-        <p className="mt-4 text-lg text-slate-300">{post.summary}</p>
-        <div className="mt-10">
-          <MdxContent code={post.mdx} />
+      )}
+
+      {/* Tags */}
+      {post.tags && post.tags.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {post.tags.map((tag) => (
+            <span
+              key={tag}
+              className="font-mono text-xs"
+              style={{
+                background: 'var(--accent-muted)',
+                color: 'var(--accent)',
+                padding: '0.125rem 0.375rem',
+                borderRadius: '0.25rem'
+              }}
+            >
+              {tag}
+            </span>
+          ))}
         </div>
-      </article>
-    </div>
+      )}
+
+      {/* Divider */}
+      <hr 
+        className="my-8" 
+        style={{ borderColor: 'var(--border)' }} 
+      />
+
+      {/* Content */}
+      <div className="prose">
+        <MdxContent code={post.mdx} />
+      </div>
+    </article>
   );
 }
