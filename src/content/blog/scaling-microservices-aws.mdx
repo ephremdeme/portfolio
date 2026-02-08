@@ -1,26 +1,127 @@
 ---
-title: "Scaling Microservices on AWS with Event-Driven Concurrency"
-summary: "Design notes from rewiring AffCollect into a message-driven mesh that processed affiliate statements 10x faster."
+title: "Scaling Microservices on AWS: Event-Driven Patterns for High-Performance Data Platforms"
+summary: "Architecture deep-dive into building a distributed system processing real-time environmental data. How we used Saga orchestration and the Transactional Outbox pattern to ensure data consistency at scale."
 publishedAt: "2024-08-03"
 tags:
   - Microservices
   - AWS
   - Kafka
-featured: false
+  - Redis
+  - Node.js
+  - Architecture
+featured: true
 ---
 
-AffCollect ingests thousands of affiliate dashboards every hour. We shifted the pipeline from cron-based polling to an event-driven graph built on Kafka + AWS Lambda.
+When building a high-scale environmental monitoring platform processing real-time sensor data from 50+ sites across Europe, we faced a classic distributed systems challenge: how to maintain data consistency while scaling throughput?
 
-## Ingredients
+I led the backend architecture for this project, moving from a monolithic cron-based system to an event-driven mesh. The key was keeping the core simple while using robust patterns like Saga Orchestration and Transactional Outbox to handle complexity where it mattered.
 
-- **Orchestrator** topics manage fetch → normalize → enrich jobs.
-- **Lambda shards** keep third-party API quotas respected via token buckets.
-- **DynamoDB stream** fans out incremental updates to downstream billing services.
+## The Challenge
 
-## Outcomes
+The platform needed to ingest thousands of sensor readings per second with strict guarantees:
 
-- 10x faster ingestion with concurrency controls.
-- 99%+ accuracy because retries are isolated per merchant stream.
-- Observability by default using OpenTelemetry into Honeycomb.
+- **Zero Data Loss**: Environmental data is critical; we couldn't drop packets.
+- **Transactional Integrity**: Updates across inventory, billing, and alerting services had to be consistent.
+- **Resilience**: A failure in one service (e.g., a third-party API outage) shouldn't crash the pipeline.
 
-This playbook now powers every data workload I touch.
+## Architecture: Simplify to Scale
+
+We avoided over-engineering the message bus. instead of complex streaming topologies, we used Kafka as a durable log and pushed logic to the edges using specific patterns.
+
+### 1. The Transactional Outbox Pattern
+
+One of the hardest problems in microservices is dual-writing: updating your database *and* publishing an event. If one fails, you're inconsistent.
+
+We solved this with the **Outbox Pattern**. Instead of publishing directly to Kafka, services write the event to a local SQL table in the same transaction as their business data.
+
+```typescript
+// Inside a transaction
+await prisma.$transaction(async (tx) => {
+  // 1. Update business entity
+  const sensor = await tx.sensor.update({
+    where: { id: payload.sensorId },
+    data: { lastReading: payload.value }
+  });
+
+  // 2. Write event to outbox table
+  await tx.outbox.create({
+    data: {
+      aggregateId: sensor.id,
+      type: "SensorReadingProcessed",
+      payload: JSON.stringify(payload),
+      status: "PENDING"
+    }
+  });
+});
+
+// Separate worker process publishes pending events to Kafka
+// This ensures we never lose an event if the message broker is down
+```
+
+### 2. Saga Orchestration for Complex Workflows
+
+For workflows spanning multiple services—like onboarding a new sensor site—we used a **Saga Orchestrator**.
+
+Instead of services talking directly to each other (choreography), which gets messy, a central Orchestrator service listens for events and commands the next step.
+
+**Example: Site Onboarding Saga**
+
+1.  **Admin Service**: Creates Site → Emits `SiteCreated`
+2.  **Orchestrator**: Listens to `SiteCreated` → Commands Device Service: `ProvisionSensors`
+3.  **Device Service**: Provisions → Emits `SensorsProvisioned`
+4.  **Orchestrator**: Listens to `SensorsProvisioned` → Commands Billing Service: `InitializeSubscription`
+5.  **Billing Service**: Fails (Card declined) → Emits `SubscriptionFailed`
+6.  **Orchestrator**: Compensating Transaction → Commands Device Service: `DeprovisionSensors`
+
+This kept our business logic visible in one place rather than scattered across five services.
+
+### 3. Simplified Kafka Usage
+
+We kept Kafka usage boringly simple to maximize reliability:
+
+-   **Topics as Logs**: Topics were immutable streams of domain events (`sensor.created`, `reading.ingested`).
+-   **Idempotent Consumers**: Every consumer tracked processed message IDs in Redis to handle duplicate deliveries (at-least-once delivery).
+-   **Dead Letter Queues (DLQ)**: Failed messages were routed to a DLQ after 3 retries, preventing "poison pill" messages from clogging the pipe.
+
+```typescript
+// Idempotency check with Redis
+async function processEvent(event: SensorEvent) {
+  const key = `processed:${event.id}`;
+  const isProcessed = await redis.setnx(key, "1");
+  
+  if (!isProcessed) {
+    logger.info("Skipping duplicate message", { id: event.id });
+    return;
+  }
+
+  try {
+    await handleBusinessLogic(event);
+    await redis.expire(key, 86400); // Keep history for 24h
+  } catch (err) {
+    await redis.del(key); // Allow retry on failure
+    throw err;
+  }
+}
+```
+
+## Infrastructure: AWS & Operational Maturity
+
+We hosted this on AWS with a focus on managed services to reduce operational overhead:
+
+*   **MSK (Managed Kafka)**: Handled the heavy lifting of cluster management.
+*   **ECS Fargate**: Ran our Node.js microservices without managing servers.
+*   **Redis (ElastiCache)**: Served as our high-speed layer for idempotency checks and rate limiting.
+*   **Aurora Postgres**: Primary data store for services.
+
+## Results
+
+By sticking to these proven patterns, we achieved:
+-   **99.95% Reliability**: The Outbox pattern eliminated data inconsistencies.
+-   **10x Throughput**: Decoupling services with Kafka allowed us to buffer spikes during storms.
+-   **Debuggability**: The Saga orchestrator made it trivial to trace *exactly* where a workflow failed.
+
+## Wrapping Up
+
+Distributed systems don't need to be complicated to be effective. By using the Transactional Outbox for safety and Sagas for coordination, we built a system that was robust enough for critical environmental data but simple enough for a small team to maintain.
+
+If you're designing event-driven systems, start with these patterns. They solve the hardest problems—consistency and coordination—before they bite you.
